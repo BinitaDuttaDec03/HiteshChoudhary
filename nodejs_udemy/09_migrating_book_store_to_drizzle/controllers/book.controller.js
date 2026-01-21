@@ -1,9 +1,24 @@
 import db from "../db/index.js";
+import authorsTable from "../models/author.model.js";
 import booksTable from "../models/book.model.js";
-import { eq } from "drizzle-orm";
+import { eq, ilike, sql } from "drizzle-orm";
 
 const getAllBooks = async (req, res) => {
-  const books = await db.select().from(booksTable);
+  const search = req.query.search;
+  let books;
+
+  if (search) {
+    books = await // .where(ilike(booksTable.title, `%${search}%`));
+    db
+      .select()
+      .from(booksTable)
+      .where(
+        sql`to_tsvector('english', ${booksTable.title}) @@ to_tsquery('english', ${search})`,
+      );
+  } else {
+    books = await db.select().from(booksTable);
+  }
+
   res.json(books);
 };
 
@@ -14,6 +29,7 @@ const getBookById = async (req, res) => {
     .select()
     .from(booksTable)
     .where((table) => eq(table.id, bookId))
+    .leftJoin(authorsTable, eq(booksTable.authorId, authorsTable.id))
     .limit(1);
 
   if (book) res.json(book);
