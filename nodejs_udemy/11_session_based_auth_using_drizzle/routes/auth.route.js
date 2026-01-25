@@ -1,10 +1,20 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import db from "../db/index.js";
 import { userSessionsTable, usersTable } from "../db/schema.js";
 import { eq } from "drizzle-orm";
+import db from "../db/index.js";
 
 const router = express.Router();
+
+router.get("/", async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    return res.status(401).json({ error: "You are not logged in" });
+  }
+
+  return res.json({ user });
+});
 
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
@@ -62,6 +72,20 @@ router.post("/login", async (req, res) => {
     .returning({ id: userSessionsTable.id });
 
   return res.json({ status: "success", sessionId: session.id });
+});
+
+router.patch("/", async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    return res.status(401).json({ error: "You are not logged in" });
+  }
+
+  const { name } = req.body;
+  console.log(name);
+  await db.update(usersTable).set({ name }).where(eq(usersTable.id, user.id));
+
+  return res.json({ status: "success", data: user });
 });
 
 export default router;
