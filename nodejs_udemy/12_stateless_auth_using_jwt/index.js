@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import authRoutes from "./routes/auth.route.js";
 import adminRoutes from "./routes/admin.route.js";
-import { adminMiddleware } from "./middlewares/adminMiddleware.js";
+import { adminMiddleware } from "./middlewares/auth.middleware.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 7000;

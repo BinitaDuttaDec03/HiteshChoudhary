@@ -35,3 +35,15 @@ export const ensureAuthenticated = async (req, res, next) => {
     return next();
   }
 };
+
+export const restrictToRole = (role) => {
+  return function (req, res, next) {
+    if (req.user.role !== role) {
+      return res
+        .status(401)
+        .json({ error: "You are not authorized to access this resource" });
+    }
+
+    return next();
+  };
+};
