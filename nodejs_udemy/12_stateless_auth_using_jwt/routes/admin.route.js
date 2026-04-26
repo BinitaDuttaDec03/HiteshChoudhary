@@ -1,11 +1,18 @@
 import express from "express";
 import db from "../db/index.js";
 import { usersTable } from "../db/schema.js";
-import { ensureAuthenticated } from "../middlewares/adminMiddleware.js";
+import {
+  ensureAuthenticated,
+  restrictToRole,
+} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/users", ensureAuthenticated, async (req, res) => {
+const adminRestrictToRole = restrictToRole("ADMIN");
+
+router.use(ensureAuthenticated, adminRestrictToRole);
+
+router.get("/users", async (req, res) => {
   if (!req.user) {
     return res
       .status(401)

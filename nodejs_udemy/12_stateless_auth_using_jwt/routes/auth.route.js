@@ -4,18 +4,9 @@ import { usersTable } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 import db from "../db/index.js";
 import jwt from "jsonwebtoken";
+import { ensureAuthenticated } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
-
-router.get("/", async (req, res) => {
-  const user = req.user;
-
-  if (!user) {
-    return res.status(401).json({ error: "You are not logged in" });
-  }
-
-  return res.json({ user });
-});
 
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
@@ -68,12 +59,22 @@ router.post("/login", async (req, res) => {
     role: user.role,
   };
 
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1m" });
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "10m" });
 
   res.status(200).json({ status: "success", token });
 });
 
-router.patch("/", async (req, res) => {
+router.get("/", ensureAuthenticated, async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    return res.status(401).json({ error: "You are not logged in" });
+  }
+
+  return res.json({ user });
+});
+
+router.patch("/", ensureAuthenticated, async (req, res) => {
   const user = req.user;
 
   if (!user) {
